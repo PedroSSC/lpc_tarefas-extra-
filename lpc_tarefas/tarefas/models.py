@@ -28,7 +28,7 @@ class Tarefa(models.Model):
     nome = models.CharField('nome',max_length=200)
     dataEHoraDeInicio = models.DateTimeField('dataEHoraDeInicio', default=timezone.now)
     projeto = models.ForeignKey('Projeto', null = True)
-    usuario = models.OneToOneField(User, null = True)
+    usuario = models.ForeignKey(User, null = True)
 
     def __str__(self):
         return '{}'.format(self.nome)

@@ -109,7 +109,7 @@ class TarefaResource(ModelResource):
             bundle.obj = tarefa
             return bundle
         else:
-            raise Unauthorized('Já existe Tarefa cadastrada.')
+            raise Unauthorized('Já existe Tarefa cadastrada neste projeto.')
 
     def obj_delete(self, bundle, **kwargs):
         tarefa = Tarefa.objects.get(pk=kwargs['pk'])
