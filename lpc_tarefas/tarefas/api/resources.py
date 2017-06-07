@@ -14,7 +14,6 @@ class UsuarioResource(ModelResource):
         allowed_methods = ['get','post', 'delete','put']
         aways_return_data = True
         authorization = Authorization()
-        #authentication = ApiKeyAuthentication()
         filtering = {
             "Name": ('exact', 'startswith',)
         }
@@ -50,8 +49,6 @@ class ProjetoResource(ModelResource):
 
     def obj_delete_list(self, bundle, **kwargs):
         raise Unauthorized('Não permitido.')
-
-
 
 #            """ RESOURCE PROJETO_USUARIO """
 
@@ -95,11 +92,13 @@ class TarefaResource(ModelResource):
 
     def obj_create(self, bundle, **kwargs):
         nome = bundle.data['nome']
-        #authentication = ApiKeyAuthentication()
-        print(bundle)
         usuario = bundle.data['usuario'].split("/")
         projeto = bundle.data['projeto'].split("/")
         TarefaProjeto = Tarefa.objects.filter(nome = nome, projeto = projeto[4])
+
+        solicitante = bundle.request.user
+        users = User.objects.get(pk = usuario[4])
+        print(solicitante==users)
 
         if (TarefaProjeto.__len__() == 0):
             tarefa = Tarefa()
@@ -113,10 +112,33 @@ class TarefaResource(ModelResource):
             raise Unauthorized('Já existe Tarefa cadastrada.')
 
     def obj_delete(self, bundle, **kwargs):
-        #authentication = ApiKeyAuthentication()
-        print(bundle)
-        usuario = bundle.data['usuario'].split("/")
-        if not(authentication == usuario[4]):
+        tarefa = Tarefa.objects.get(pk=kwargs['pk'])
+        donoTarefa = User.objects.get(username=tarefa.usuario)
+        solicitante = bundle.request.user
+        if not(donoTarefa.pk == solicitante.pk):
+            raise Unauthorized('Tarefa registrada por outro usuario.')
+        else:
+            tarefa.delete()
+            bundle.obj = tarefa
+
+    def obj_update(self, bundle, **kwargs):
+        tarefa = Tarefa.objects.get(pk=kwargs['pk'])
+        donoTarefa = User.objects.get(username=tarefa.usuario)
+        solicitante = bundle.request.user
+        if(donoTarefa.pk == solicitante.pk):
+            nome = bundle.data['nome']
+            usuario = bundle.data['usuario'].split("/")
+            projeto = bundle.data['projeto'].split("/")
+            TarefaProjeto = Tarefa.objects.filter(nome = nome, projeto = projeto[4])
+            if(TarefaProjeto.__len__() == 0):
+                tarefa.nome = bundle.data['nome']
+                tarefa.usuario = User.objects.get(pk = usuario[4])
+                tarefa.projeto = Projeto.objects.get(pk = projeto[4])
+                tarefa.save()
+                bundle.obj = tarefa
+            else:
+                raise Unauthorized('Tarefa já cadastrada neste projeto.')
+        else:
             raise Unauthorized('Tarefa registrada por outro usuario.')
 
     def obj_delete_list(self, bundle, **kwargs):

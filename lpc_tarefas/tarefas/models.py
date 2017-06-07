@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 #    def __str__(self):
 #        return '{}'.format(self.nome)
 
-ddddd
+
 class Projeto(models.Model):
     nome = models.CharField('nome',max_length=200)
 
